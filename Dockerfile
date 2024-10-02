@@ -43,14 +43,13 @@ COPY ibek-support/ADCore/ ADCore/
 RUN ADCore/install.sh R3-13
 
 
-# COPY adandor adandor_clone/
-# COPY ibek-support/adandor/ adandor
+COPY ibek-support-dls/adandor/ adandor
 # RUN adandor/install.sh dls-master
 
 
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc
-RUN cd ${IOC} && ./install.sh && make
+RUN cd ${IOC} && make clean uninstall && ./install.sh && make
 
 # install runtime proxy for non-native builds
 RUN bash ${IOC}/install_proxy.sh
