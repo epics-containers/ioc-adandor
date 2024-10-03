@@ -17,7 +17,7 @@ RUN ln -s ${SOURCE_FOLDER}/ioc ${IOC}
 # Get the current version of ibek
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade --no-cache-dir  -r requirements.txt
-# RUN pip install --no-cache-dir 
+# RUN pip install --no-cache-dir
 
 WORKDIR ${SOURCE_FOLDER}/ibek-support
 
@@ -34,18 +34,17 @@ RUN iocStats/install.sh 3.2.0
 #  TODO - Add further support module installations here
 ################################################################################
 
-
-
 COPY ibek-support/asyn/ asyn/
 RUN asyn/install.sh R4-44-2
 
 COPY ibek-support/ADCore/ ADCore/
 RUN ADCore/install.sh R3-13
 
+COPY ibek-support-dls/andorCCDSDK/ andorCCDSDK
+RUN andorCCDSDK/install.sh master
 
 COPY ibek-support-dls/adandor/ adandor
-# RUN adandor/install.sh dls-master
-
+RUN adandor/install.sh dls-master
 
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc
