@@ -34,11 +34,21 @@ RUN iocStats/install.sh 3.2.0
 #  TODO - Add further support module installations here
 ################################################################################
 
+
 COPY ibek-support/asyn/ asyn/
 RUN asyn/install.sh R4-44-2
 
+COPY ibek-support/busy/ busy/
+RUN busy/install.sh R1-7-4
+
+
+
 COPY ibek-support/ADCore/ ADCore/
 RUN ADCore/install.sh R3-13
+
+##### Internal modules ################################################
+WORKDIR ${SOURCE_FOLDER}/ibek-support-dls
+COPY ibek-support/_global/ _global
 
 COPY ibek-support-dls/andorCCDSDK/ andorCCDSDK
 RUN andorCCDSDK/install.sh master
