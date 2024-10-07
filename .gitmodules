@@ -4,4 +4,4 @@
 [submodule "ibek-support-dls"]
 	path = ibek-support-dls
 	url = https://gitlab.diamond.ac.uk/controls/containers/utils/ibek-support-dls.git
-	branch = checkout adandor-global-fix
+	branch = adandor-global-fix
