@@ -14,8 +14,7 @@ ibek
 # config folder is a container mount at /epics/ioc/config
 ioc/config
 # the opi folder is also mounted into the container at /epics/ioc/opi
-opi/auto-generated/*
-!opi/auto-generated/.placeholder
+opi/auto-generated
 
 # podman may leave this around in aborted builds
 .build.swp
@@ -24,7 +23,11 @@ opi/auto-generated/*
 # TODO this entry does not work - why on earth not?
 ioc/configure/CONFIG_SITE.Common.linux-x86_64
 
+# ansible and build logs
+**/.ansible
+**/*build.log
 
+# the private and public repos are for development and should not be committed
 adandor/
 andorccdsdk/
 work/

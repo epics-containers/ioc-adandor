@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: 4.0.1
+_commit: 4.5.2
 _src_path: gh:epics-containers/ioc-template
 description: 'The Generic IOC for the adandor '
 git_platform: gitlab.diamond.ac.uk
