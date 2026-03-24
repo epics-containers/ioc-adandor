@@ -33,11 +33,8 @@ ENV PATH=$PATH:${SOURCE_FOLDER}/ibek-support/_ansible
 WORKDIR ${SOURCE_FOLDER}/ibek-support-dls
 COPY ibek-support/_global/ _global
 
-#COPY ibek-support-dls/andorCCDSDK/ andorCCDSDK
-#RUN andorCCDSDK/install.sh master
-
-#COPY ibek-support-dls/adandor/ adandor
-#RUN adandor/install.sh dls-master
+COPY ibek-support-dls/adandor/ adandor
+RUN ansible.sh adandor
 
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc
