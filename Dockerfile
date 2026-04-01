@@ -29,12 +29,9 @@ WORKDIR ${SOURCE_FOLDER}/ibek-support
 COPY ibek-support/_ansible _ansible
 ENV PATH=$PATH:${SOURCE_FOLDER}/ibek-support/_ansible
 
-##### Internal modules ################################################
-WORKDIR ${SOURCE_FOLDER}/ibek-support-dls
-COPY ibek-support/_global/ _global
-
-COPY ibek-support-dls/adandor/ adandor
-RUN ansible.sh adandor
+# get the required support modules and build them
+COPY ibek-support/ADAndor/ ADAndor
+RUN ansible.sh ADAndor
 
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc
