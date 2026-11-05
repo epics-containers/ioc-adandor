@@ -16,7 +16,7 @@ To update to the latest version of the template:
 
 pip install copier
 cd ioc-adandor
-copier update -a --trust .
+copier update --trust .
 ```
 
 ## Developer Container
