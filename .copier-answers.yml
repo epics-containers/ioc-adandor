@@ -1,0 +1,9 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 5.0.4
+_src_path: https://github.com/epics-containers/ioc-template
+arm64: false
+description: A generic IOC for Andor cameras using Andor SDK2
+git_platform: github.com
+github_org: epics-containers
+name: ioc-adandor
+repo_uri: git@github.com:epics-containers/ioc-adandor.git
