@@ -20,14 +20,40 @@ WORKDIR ${SOURCE_FOLDER}/ibek-support
 COPY ibek-support/_ansible _ansible
 ENV PATH=$PATH:${SOURCE_FOLDER}/ibek-support/_ansible
 
+# Build the core support stack and ADCore before the camera driver.
 COPY ibek-support/iocStats/ iocStats
 RUN ansible.sh iocStats
 
-COPY ibek-support/pvlogging/ pvlogging/
-RUN ansible.sh pvlogging
+COPY ibek-support/sequencer/ sequencer
+RUN ansible.sh sequencer
+
+COPY ibek-support/sscan/ sscan
+RUN ansible.sh sscan
+
+COPY ibek-support/calc/ calc
+RUN ansible.sh calc
+
+COPY ibek-support/asyn/ asyn
+RUN ansible.sh asyn
+
+COPY ibek-support/busy/ busy
+RUN ansible.sh busy
 
 COPY ibek-support/autosave/ autosave
 RUN ansible.sh autosave
+
+COPY ibek-support/pvlogging/ pvlogging
+RUN ansible.sh pvlogging
+
+COPY ibek-support/ADCore/ ADCore
+RUN ansible.sh ADCore
+
+COPY ibek-support/ffmpegServer/ ffmpegServer
+RUN ansible.sh ffmpegServer
+
+# get the required support modules and build them
+COPY ibek-support/ADAndor/ ADAndor
+RUN ansible.sh ADAndor
 
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc
