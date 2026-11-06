@@ -23,11 +23,5 @@ opi/auto-generated
 # TODO this entry does not work - why on earth not?
 ioc/configure/CONFIG_SITE.Common.linux-*
 
-# ansible and build logs
 **/.ansible
 **/*build.log
-
-# the private and public repos are for development and should not be committed
-adandor/
-andorccdsdk/
-work/
