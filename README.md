@@ -39,8 +39,8 @@ The Generic IOC for Andor CCD cameras, built on the EPICS areaDetector
 
 ADAndor is compiled with Shamrock spectrograph support (`WITH_SHAMROCK = YES`),
 but the `ADAndor` ibek support YAML does not load `shamrockSupport.dbd` or
-`shamrock.template`, so an IOC instance cannot configure a Shamrock
-spectrograph through an ibek entity.
+`shamrock.template`, so the ibek entity does not create the Shamrock driver or
+its records. The entity's `SHAMROCKID` parameter is passed to the CCD driver.
 
 > [!IMPORTANT]
 > This IOC requires the firmware and configuration files (the `etc` directory)

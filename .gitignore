@@ -28,6 +28,7 @@ ioc/configure/CONFIG_SITE.Common.linux-*
 
 # repo-specific entries for ioc-adandor (not from ioc-template): keep this
 # block at the end of the file so that copier update leaves it alone
+
 # local copies of the Andor SDK and scratch work folders must not be committed
 andorccdsdk/
 work/
