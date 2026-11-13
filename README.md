@@ -34,14 +34,20 @@ caget IOCNAME:PVNAME
 
 ## Overview
 
-The Generic IOC for Andor CCD cameras (including Shamrock spectrograph support),
-built on the EPICS areaDetector
+The Generic IOC for Andor CCD cameras, built on the EPICS areaDetector
 [ADAndor](https://github.com/areaDetector/ADAndor) support module.
 
+ADAndor is compiled with Shamrock spectrograph support (`WITH_SHAMROCK = YES`),
+but the `ADAndor` ibek support YAML does not load `shamrockSupport.dbd` or
+`shamrock.template`, so an IOC instance cannot configure a Shamrock
+spectrograph through an ibek entity.
+
 > [!IMPORTANT]
-> This IOC requires a proprietary **Andor SDK2** to be available at runtime.
-> The SDK is **not** bundled in the container image and must be provided
-> separately via a Kubernetes Persistent Volume Claim (PVC). See the
+> This IOC requires the firmware and configuration files (the `etc` directory)
+> of the proprietary **Andor SDK2** to be available at runtime. The container
+> image contains the driver and the SDK2 shared libraries that upstream ADAndor
+> redistributes, but **not** these files: they must be provided separately via
+> a Kubernetes Persistent Volume Claim (PVC). See the
 > [Andor SDK2 Requirement](#andor-sdk2-requirement) section below before
 > deploying this IOC to a beamline.
 
@@ -51,46 +57,51 @@ built on the EPICS areaDetector
 
 The open-source
 [ADAndor](https://github.com/areaDetector/ADAndor) EPICS driver is compiled
-into the container image at build time. However, the underlying **Andor SDK2**
-shared libraries (`libandor.so`, `libshamrockcif.so`, etc.) are proprietary and
-are **not** included in the image.
+into the container image at build time, together with the **Andor SDK2**
+shared libraries (`libandor.so`, `libshamrockcif.so`) that the ADAndor
+repository redistributes and links against. The SDK's firmware and
+configuration files are proprietary and are **not** included in the image.
 
-At IOC start, the driver calls `andorCCDConfig` and expects to find the SDK
-installation — including firmware and configuration files — at the path:
+At IOC start, the driver calls `andorCCDConfig`, which passes a directory to
+the SDK; the SDK reads the detector firmware and configuration files from it.
+That directory is the `INSTALLPATH` parameter of the `ADAndor.andorCCD` ibek
+entity, with the default value:
 
 ```
-/usr/local/andor2
+/usr/local/andor2/etc
 ```
 
-This path corresponds to the `INSTALLPATH` parameter of the `ADAndor.andorCCD`
-ibek entity (default value `/usr/local/andor2/etc`).
+The instructions below mount a PVC holding the SDK files at
+`/usr/local/andor2`, so that its `etc` subdirectory is at the default
+`INSTALLPATH`.
 
-If the SDK libraries are absent the IOC container will fail to start.
+The IOC container starts without the PVC. An `ADAndor.andorCCD` entity passes
+`INSTALLPATH` to the SDK when it initialises its camera, and a camera that
+needs the SDK's firmware and configuration files does not initialise unless
+the `etc` directory is there.
 
-**Note on SDK Versioning:** Exact version matching is not strictly required — the driver typically works with different patch and minor versions of the SDK as long as they maintain ABI compatibility. However, use a version recommended by your facility's controls team or hardware vendor.
+**Note on SDK Versioning:** The SDK2 libraries in the image are version 2.102.30034.0. Take the `etc` files from an SDK2 release that is compatible with those libraries; use a version recommended by your facility's controls team or hardware vendor.
 
 ### Obtaining the SDK
 
 The Andor SDK2 is a proprietary software package supplied by
-[Oxford Instruments / Andor](https://andor.oxinst.com/). At Diamond Light
-Source it is maintained internally at:
+[Oxford Instruments / Andor](https://andor.oxinst.com/). Contact your local
+controls group to obtain an appropriate copy for your facility.
 
-```
-https://gitlab.diamond.ac.uk/controls/support/andorCCDSDK
-```
-
-Contact your local controls group to obtain an appropriate copy for your
-facility.
+At Diamond Light Source it is maintained in the internal repository
+`https://gitlab.diamond.ac.uk/controls/support/andorCCDSDK`, which is
+reachable only from inside Diamond's network.
 
 ### Step 1 — Create a Persistent Volume Claim
 
-Before deploying this IOC you must provision a PVC to hold the SDK files. Add
+Before deploying an Andor camera with this IOC you must provision a PVC to
+hold the SDK files. Add
 an entry to your beamline's `epics-pvcs` Helm chart `values.yaml`:
 
 ```yaml
 epics-pvcs:
   additionalPvcs:
-    # PVC for Andor SDK2 shared library, needed for the Andor CCD camera to work
+    # PVC for Andor SDK2 firmware and configuration files, needed for the Andor CCD camera to work
     - name: andor-sdk2
       size: 128Mi
 ```
@@ -101,12 +112,20 @@ namespace before continuing.
 ### Step 2 — Populate the PVC with the SDK
 
 Because the SDK is proprietary it cannot be fetched automatically. You must
-copy the SDK files into the PVC manually using a temporary helper pod.
+copy the SDK files into the PVC manually, through a pod that mounts it.
 
 The `epics-pvcs` chart deploys a persistent `busybox` pod that automatically
 mounts every PVC — including all `additionalPvcs` entries — under `/mounts/<pvc-name>`.
-This means the `andor-sdk2` PVC is always accessible at `/mounts/andor-sdk2`
-inside that pod, so **no separate helper pod is needed**.
+This means the `andor-sdk2` PVC is accessible at `/mounts/andor-sdk2` inside
+that pod, so **no separate helper pod is needed** when you can reach it (the
+first approach below). The second approach creates a temporary helper pod for
+when you cannot.
+
+Whichever approach you use, the root of the PVC must contain:
+- `etc/` — detector firmware and configuration files
+
+The IOC does not load any shared libraries from the PVC: it uses the ones in
+the image.
 
 #### At Diamond Light Source (using ec-cli)
 
@@ -153,10 +172,6 @@ inside that pod, so **no separate helper pod is needed**.
    kubectl cp /path/to/local/andor2/. andor-sdk-loader:/usr/local/andor2/
    ```
 
-   The destination directory should contain at least:
-   - `lib/` — shared libraries (`libandor.so`, `libshamrockcif.so`, …)
-   - `etc/` — detector firmware and configuration files
-
 3. **Remove the helper pod** once the copy is complete:
 
    ```bash
@@ -170,7 +185,7 @@ so that the PVC is mounted at `/usr/local/andor2` inside the container:
 
 ```yaml
 ioc-instance:
-  image: <registry>/ioc-adandor-linux-runtime:<version>
+  image: ghcr.io/epics-containers/ioc-adandor-runtime:<version>
 
   volumeMounts:
     - name: andor-sdk2-volume
@@ -202,6 +217,6 @@ entities:
 | Step | Action |
 |------|--------|
 | 1 | Add `andor-sdk2` PVC to the `epics-pvcs` chart and deploy it |
-| 2 | Copy the proprietary Andor SDK2 into the PVC with `kubectl cp` |
+| 2 | Copy the proprietary Andor SDK2 files (its `etc` directory) into the PVC with `kubectl cp` |
 | 3 | Mount the PVC at `/usr/local/andor2` in the IOC `values.yaml` |
 | 4 | Set `INSTALLPATH: /usr/local/andor2/etc` in the ibek `ioc.yaml` |
