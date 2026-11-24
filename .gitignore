@@ -40,3 +40,6 @@ ioc/configure/CONFIG_SITE.Common.linux-*
 # local copies of the Andor SDK and scratch work folders must not be committed
 andorccdsdk/
 work/
+
+# run-tests.sh copies each tests/instances config here, and leaves it on failure
+tests/.instance-config
